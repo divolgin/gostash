@@ -8,7 +8,6 @@ logstash client written in Go
 package main
 
 import (
-	"fmt"
 	"github.com/divolgin/gostash"
 )
 
@@ -21,7 +20,6 @@ func main() {
 		"pid":       "345",
 	}
 
-	fmt.Println("metadata=", metadata)
 	logstash.SendMessage("message logged from myserver by process 345", metadata)
 }
 ```
