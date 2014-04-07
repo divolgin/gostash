@@ -24,6 +24,7 @@ type LogstashClient struct {
 
 func NewLogstashClient(config *Config) *LogstashClient {
 	c := LogstashClient{}
+	c.formatter = NewFormatter(config)
 	c.logstashHost = config.LogstashHost
 	c.logstashPort = config.LogstashPort
 	c.serverAddr, c.err = net.ResolveUDPAddr("udp", c.logstashHost+":"+c.logstashPort)
@@ -32,9 +33,6 @@ func NewLogstashClient(config *Config) *LogstashClient {
 		return &c
 	}
 	c.conn, c.err = net.DialUDP("udp", nil, c.serverAddr)
-
-	c.formatter = NewFormatter(config)
-
 	return &c
 }
 
@@ -58,7 +56,13 @@ func (c *LogstashClient) SendMessage(msg string, metadata map[string]string) {
 }
 
 func (c *LogstashClient) Write(msg []byte) (n int, err error) {
-	go c.conn.Write(msg)
+	if msg == nil {
+		return 0, nil
+	}
+	// Allow logging to fail silently
+	if c.err == nil {
+		go c.conn.Write(msg)
+	}
 	return len(msg), nil
 }
 
