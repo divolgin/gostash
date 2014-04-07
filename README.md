@@ -3,7 +3,9 @@ gostash
 
 logstash client written in Go
 
-## Example
+## Examples
+
+### Calling gostash directly
 ```go
 package main
 
@@ -12,7 +14,12 @@ import (
 )
 
 func main() {
-	logstash := gostash.NewLogstashClient("logstash_host", "9125", "whale")
+	config := gostash.Config{}
+	config.LogstashHost = "logstash_host"
+	config.LogstashPort = "9125"
+	config.InputType = "mylogformat"
+
+	logstash := gostash.NewLogstashClient(&config)
 	defer logstash.Close()
 
 	metadata := map[string]string{
@@ -21,5 +28,30 @@ func main() {
 	}
 
 	logstash.SendMessage("message logged from myserver by process 345", metadata)
+}
+```
+
+### Logging with loggo
+```go
+package main
+
+import (
+	"github.com/divolgin/gostash"
+	"github.com/lookio/loggo"
+)
+
+func main() {
+	config := gostash.Config{}
+	config.LogstashHost = "logstash_host"
+	config.LogstashPort = "9125"
+	config.InputType = "mylogformat"
+
+	logstash := gostash.NewLogstashClient(&config)
+	loggoWriter := loggo.NewSimpleWriter(logstash, logstash.Formatter())
+	loggo.RegisterWriter("logstash", loggoWriter, loggo.DEBUG)
+
+	logger := loggo.GetLogger("")
+	logger.Debugf("this message will be sent to logstash")
+	logger.Errorf("this message will be printed to console and sent to logstash")
 }
 ```
