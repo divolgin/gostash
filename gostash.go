@@ -63,7 +63,7 @@ func (c *LogstashClient) Write(msg []byte) (n int, err error) {
 }
 
 func (c *LogstashClient) Close() {
-	if c.err == nil {
+	if c.err != nil {
 		return
 	}
 	c.conn.Close()
