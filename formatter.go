@@ -2,7 +2,7 @@ package gostash
 
 import (
 	"encoding/json"
-	"github.com/lookio/loggo"
+	"github.com/howbazaar/loggo"
 	"path/filepath"
 	"strconv"
 	"time"

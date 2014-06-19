@@ -40,7 +40,7 @@ func (c *LogstashClient) Formatter() *Formatter {
 	return c.formatter
 }
 
-func (c *LogstashClient) Error() error {
+func (c *LogstashClient) LastError() error {
 	return c.err
 }
 
@@ -48,8 +48,10 @@ func (c *LogstashClient) SendMessage(msg string, metadata map[string]string) {
 	if c.err != nil {
 		return
 	}
-	encoded, err := c.formatter.encode(msg, metadata)
-	if err != nil {
+
+	var encoded []byte
+	encoded, c.err = c.formatter.encode(msg, metadata)
+	if c.err != nil {
 		return
 	}
 	c.Write(encoded)
@@ -59,16 +61,17 @@ func (c *LogstashClient) Write(msg []byte) (n int, err error) {
 	if msg == nil {
 		return 0, nil
 	}
-	// Allow logging to fail silently
-	if c.err == nil {
-		go c.conn.Write(msg)
+
+	if c.conn != nil {
+		_, c.err = c.conn.Write(msg)
 	}
+
+	// Allow logging to fail silently when used with loggo
 	return len(msg), nil
 }
 
 func (c *LogstashClient) Close() {
-	if c.err != nil {
-		return
+	if c.conn != nil {
+		c.err = c.conn.Close()
 	}
-	c.conn.Close()
 }
